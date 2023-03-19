@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        margin: 0;
+      }
+      canvas {
+        border: 2px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script>
+      const userId = prompt('请输入用户名');
+      const userService = new UserService();
+      userService.add(userId);
+
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth - 4;
+      canvas.height = window.innerHeight - 8;
+      const frameRate = 30; // must divide into 60 by whole number eg 60,30,20,15,10
+      var frameCount = 0;
+
+      // define keys to listen to
+      const keys = {
+        ArrowUp: false,
+        ArrowDown: false,
+        ArrowLeft: false,
+        ArrowRight: false,
+        anykey: false,
+      };
+
+      // sets key to true if key is down
+      function keyboardEvent(event) {
+        if (keys[event.code] !== undefined) {
+          keys[event.code] = event.type === 'keydown';
+          event.preventDefault();
+          event.type === 'keydown' && (keys.anykey = true);
+        }
+      }
+
+      // add key listeners to window
+      addEventListener('keydown', keyboardEvent);
+      addEventListener('keyup', keyboardEvent);
+
+      // For SO snippet as it will not focus without user click.
+      canvas.addEventListener('click', () => requestAnimationFrame(update), { once: true });
+      ctx.font = '16px arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Click to focus keyboard', canvas.width / 2, canvas.height / 2);
+
+      const player = {
+        x: 0,
+        y: 0,
+        w: 50,
+        h: 50,
+        speed: 5,
+        draw() {
+          // Draw a black background
+          ctx.fillStyle = 'black';
+          ctx.fillRect(player.x, player.y, player.w, player.h);
+
+          // Draw the text
+          ctx.fillStyle = '#E7E0CA';
+          ctx.fillText('A', player.x + player.w / 2, player.y + player.h / 2);
+        },
+        move() {
+          if (keys.ArrowUp) {
+            player.y -= player.speed;
+          }
+          if (keys.ArrowDown) {
+            player.y += player.speed;
+          }
+          if (keys.ArrowRight) {
+            player.x += player.speed;
+          }
+          if (keys.ArrowLeft) {
+            player.x -= player.speed;
+          }
+          if (player.y < 0) {
+            player.y = 0;
+          }
+          if (player.y + player.h > canvas.height) {
+            player.y = canvas.height - player.h;
+          }
+          if (player.x + player.w > canvas.width) {
+            player.x = canvas.width - player.w;
+          }
+          if (player.x < 0) {
+            player.x = 0;
+          }
+        },
+      };
+
+      function update() {
+        if (frameCount % (60 / frameRate) === 0) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          player.move();
+          player.draw();
+          if (!keys.anykey) {
+            ctx.fillText('Arrow keys to move!', canvas.width / 2, canvas.height / 2);
+          }
+        }
+        frameCount += 1;
+        requestAnimationFrame(update);
+      }
+
+      function UserService() {
+        const userIds = [];
+
+        this.add = function (userId) {
+          if (userIds.some((x) => x === userId)) {
+            alert('用户已存在');
+          }
+
+          this.users.push(userId);
+          localStorage.setItem('userIds', JSON.stringify(userIds));
+        };
+      }
+    </script>
+  </body>
+</html>
